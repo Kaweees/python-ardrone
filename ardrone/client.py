@@ -31,7 +31,7 @@ def main():
             try:
                 c = sys.stdin.read(1).lower()
 
-                if c == 'q':
+                if c == 'p':
                     break
                 elif c == 'a':
                     drone.move_left()
