@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import fcntl
 import sys
 import termios
@@ -8,7 +6,7 @@ import os
 import ardrone
 
 
-if __name__ == '__main__':
+def main():
     if len(sys.argv) != 1 and len(sys.argv) != 2:
         print('usage: ' + sys.argv[0] + ' [host]')
         sys.exit(1)
@@ -69,3 +67,7 @@ if __name__ == '__main__':
         termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
         fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
         drone.halt()
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ardrone"
+version = "0.3.0"
+description = "A Python library for controlling the Parrot AR.Drone 2.0 over a network"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+authors = [
+    { name = "Lily Foster", email = "lily@lily.flowers" },
+]
+dependencies = [
+    "Pillow",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Hardware :: Hardware Drivers",
+]
+
+[project.urls]
+Source = "https://github.com/lilyinstarlight/python-ardrone"
+Tracker = "https://github.com/lilyinstarlight/python-ardrone/issues"
+
+[project.scripts]
+ardrone-client = "ardrone.client:main"
+
+[tool.setuptools.packages.find]
