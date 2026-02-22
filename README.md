@@ -5,7 +5,6 @@ _**Note: This library is looking for testers and/or maintainers! I have not had 
 
 A Python library for controlling the Parrot AR.Drone 2.0 over a network.
 
-
 Usage
 -----
 
@@ -23,7 +22,6 @@ drone.image.show()
 
 drone.halt()
 ```
-
 
 Thanks
 ------

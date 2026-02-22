@@ -2,9 +2,7 @@
 
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-#if LIBAVUTIL_VERSION_MAJOR > 52
 #include <libavutil/imgutils.h>
-#endif
 #include <libswscale/swscale.h>
 
 struct PaVE {
@@ -44,7 +42,6 @@ static PyMethodDef VideoMethods[] = {
 	{"decode",  video_decode, METH_VARARGS, "decode a PaVE video packet into an RGB image buffer"},
 	{NULL, NULL, 0, NULL}
 };
-#if PY_MAJOR_VERSION > 2
 
 static struct PyModuleDef videomodule = {
    PyModuleDef_HEAD_INIT,
@@ -53,91 +50,47 @@ static struct PyModuleDef videomodule = {
    -1,
    VideoMethods
 };
-#endif
 
-AVCodec * codec;
+const AVCodec * codec;
 AVCodecContext * context;
 AVFrame * frame;
 struct SwsContext * sws_context;
 
-#if PY_MAJOR_VERSION > 2
 PyMODINIT_FUNC PyInit_video(void) {
-#else
-PyMODINIT_FUNC initvideo(void) {
-#endif
 	PyObject * module;
 
-#if PY_MAJOR_VERSION > 2
 	module = PyModule_Create(&videomodule);
-#else
-	module = Py_InitModule("ardrone.video", VideoMethods);
-#endif
 	if (module == NULL)
-#if PY_MAJOR_VERSION > 2
 		return NULL;
-#else
-		return;
-#endif
 
 	VideoDecodeError = PyErr_NewException("ardrone.video.DecodeError", NULL, NULL);
 	Py_INCREF(VideoDecodeError);
 	PyModule_AddObject(module, "DecodeError", VideoDecodeError);
 
-#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(58, 9, 100)
-	av_register_all();
-
-#endif
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 10, 100)
-	avcodec_register_all();
-
-#endif
 	codec = avcodec_find_decoder(AV_CODEC_ID_H264);
 	if (!codec) {
 		PyErr_SetString(VideoDecodeError, "could not find h.264 decoder");
-#if PY_MAJOR_VERSION > 2
 		return NULL;
-#else
-		return;
-#endif
 	}
 
 	context = avcodec_alloc_context3(codec);
 	if (!context) {
 		PyErr_NoMemory();
-#if PY_MAJOR_VERSION > 2
 		return NULL;
-#else
-		return;
-#endif
 	}
 
-	avcodec_get_context_defaults3(context, codec);
 	if (avcodec_open2(context, codec, NULL) < 0) {
 		PyErr_SetString(VideoDecodeError, "could not open h.264 codec");
-#if PY_MAJOR_VERSION > 2
 		return NULL;
-#else
-		return;
-#endif
 	}
 
-#if LIBAVUTIL_VERSION_MAJOR > 52
 	frame = av_frame_alloc();
-#else
-	frame = avcodec_alloc_frame();
-#endif
 	if (!frame) {
 		PyErr_NoMemory();
-#if PY_MAJOR_VERSION > 2
 		return NULL;
-#else
-		return;
-#endif
 	}
-#if PY_MAJOR_VERSION > 2
 
 	return module;
-#endif
 }
 
 static PyObject * video_decode(PyObject * self, PyObject * args) {
@@ -147,13 +100,8 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	struct PaVE header;
 	unsigned char * payload;
 
-	AVPacket packet;
+	AVPacket * packet;
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(57, 106, 102)
-	int got_frame;
-	int frame_size;
-
-#endif
 	unsigned char * image;
 	int image_width;
 	int image_height;
@@ -180,34 +128,29 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 		return NULL;
 	}
 
-	av_init_packet(&packet);
+	packet = av_packet_alloc();
+	if (!packet) {
+		PyErr_NoMemory();
+		return NULL;
+	}
 
-	packet.pts = AV_NOPTS_VALUE;
-	packet.dts = AV_NOPTS_VALUE;
-	packet.data = payload;
-	packet.size = header.payload_size;
+	packet->pts = AV_NOPTS_VALUE;
+	packet->dts = AV_NOPTS_VALUE;
+	packet->data = payload;
+	packet->size = header.payload_size;
 
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57, 106, 102)
-	if (avcodec_send_packet(context, &packet) != 0 || avcodec_receive_frame(context, frame) != 0) {
+	if (avcodec_send_packet(context, packet) != 0 || avcodec_receive_frame(context, frame) != 0) {
+		av_packet_free(&packet);
 		PyErr_SetString(VideoDecodeError, "could not decode frame");
 		return NULL;
 	}
-#else
-	frame_size = avcodec_decode_video2(context, frame, &got_frame, &packet);
-	if (frame_size < 0 || !got_frame) {
-		PyErr_SetString(VideoDecodeError, "could not decode frame");
-		return NULL;
-	}
-#endif
+
+	av_packet_free(&packet);
 
 	image_width = frame->width;
 	image_height = frame->height;
 
-#if LIBAVUTIL_VERSION_MAJOR > 52
 	image_size = av_image_get_buffer_size(AV_PIX_FMT_RGB24, image_width, image_height, 1)*sizeof(uint8_t);
-#else
-	image_size = avpicture_get_size(AV_PIX_FMT_RGB24, image_width, image_height)*sizeof(uint8_t);
-#endif
 
 	image = (unsigned char *)av_malloc(image_size);
 
@@ -217,11 +160,7 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	sws_context = sws_getCachedContext(sws_context, context->width, context->height, AV_PIX_FMT_YUV420P, context->width, context->height, AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 	sws_scale(sws_context, (const unsigned char * const *)frame->data, frame->linesize, 0, frame->height, image_data, image_linesize);
 
-#if PY_MAJOR_VERSION > 2
 	py_image = Py_BuildValue("iiy#", image_width, image_height, image, image_size);
-#else
-	py_image = Py_BuildValue("iis#", image_width, image_height, image, image_size);
-#endif
 
 	av_free(image);
 
