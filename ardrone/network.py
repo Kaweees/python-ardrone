@@ -66,7 +66,7 @@ class ARDroneNetworkProcess(multiprocessing.Process):
                 elif i == nav_socket:
                     while 1:
                         try:
-                            data = nav_socket.recvfrom(65535)
+                            data, _ = nav_socket.recvfrom(65535)
                         except IOError:
                             # we consumed every packet from the socket and
                             # continue with the last one
