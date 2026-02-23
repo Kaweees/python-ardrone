@@ -1,5 +1,6 @@
 from setuptools import setup, Extension
 
+
 video = Extension(
     name="ardrone.video",
     libraries=["avcodec", "avformat", "avutil", "swscale"],
