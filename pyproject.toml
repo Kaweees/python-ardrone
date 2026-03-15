@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=64"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build"]
+build-backend = "uv_build"
 
 [project]
 name = "ardrone-sdk"
-version = "0.4.2"
+version = "0.4.3"
 description = "A Python library for controlling the Parrot AR.Drone 2.0 over a network"
 readme = "README.md"
 license = "MIT"
@@ -31,7 +31,8 @@ classifiers = [
 Source = "https://github.com/lilyinstarlight/python-ardrone"
 Tracker = "https://github.com/lilyinstarlight/python-ardrone/issues"
 
+[tool.uv.build-backend]
+module-name = "ardrone"
+
 [project.scripts]
 ardrone-client = "ardrone.client:main"
-
-[tool.setuptools.packages.find]
