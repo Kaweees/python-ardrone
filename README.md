@@ -1,10 +1,8 @@
-python-ardrone
-==============
+# python-ardrone
 
 A Python library for controlling the Parrot AR.Drone 2.0 over a network.
 
-Usage
------
+## Usage
 
 ```python
 import ardrone
@@ -21,7 +19,6 @@ drone.image.show()
 drone.halt()
 ```
 
-Thanks
-------
+## Thanks
 
 Thanks to Bastian Venthur for making the beginnings on which this library was based at https://github.com/venthur/python-ardrone!

@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "ardrone-sdk"
-version = "0.4.3"
+version = "0.4.4"
 description = "A Python library for controlling the Parrot AR.Drone 2.0 over a network"
 readme = "README.md"
 license = "MIT"
